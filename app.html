@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <title>通讯录</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <link rel="stylesheet" href="css/vant.css">
+</head>
+<body>
+  <div id="app" @click="showModal = false">
+		<div class="seach-box">
+			<div class="search">
+				<van-search
+					@input="autoSearch"
+				  v-model="keywords"
+				  placeholder="Search"	
+					@focus="initPage"
+					@click.stop="showModal = true"
+				/>
+			</div>
+			<div class="srarch_main" v-if="showModal" @click.stop="showModal = true">
+				<div class="title d-flex" style="justify-content: space-between;">
+					历史搜索
+					<span @click="clear">清空</span>
+				</div>
+				<ul class="history-list" v-if="historyList[0].list.length > 0">
+					<li v-for="(item,index) in historyList[0].list" :key="index" @click.stop="historySearch(item)">{{item}}</li>
+				</ul>
+			</div>
+		</div>
+		
+		<div class="book" id="book">
+			<van-index-bar>
+				<div class="bar-head" v-for="(item,index) in userData" :key="index">
+					<van-index-anchor :index="item.index" @click.stop>{{item.index}}</van-index-anchor>
+					<van-cell v-for="(sItem,sIndex) in item.users" @click="showDetail(index,sIndex)">{{sItem.name}}</van-cell>
+				</div>     
+			</van-index-bar>
+		</div>
+    
+    <div class="searchList" id="searchList">
+      <div v-if="newListData.length > 0">
+        <p class="user-number d-flex">
+        	<span class="d-flex" @click="userShow" style="margin-right: 0.8rem;"><van-icon name="arrow-left" size="1rem" /></span>
+        	找到个{{newListData.length}}联系人
+        </p>
+        <van-cell v-for="item in newListData" :key="item" :title="item" />
+      </div>
+      <p class="user-number d-flex" v-else>
+      	<span class="d-flex" @click="userShow" style="margin-right: 0.8rem;"><van-icon name="arrow-left" size="1rem" /></span>
+      	找到个0联系人
+      </p>
+		</div>
+		
+		<van-overlay :show="detail" @click="detail = false">
+		  <div class="wrapper">
+				<!--上下箭头  -->
+				<div class="indicate" @click.stop>
+					<div class="up-icon"><van-icon name="arrow-up" size="3rem" @click="ChangeUp()"></van-icon></div>
+					<div class="down-icon"><van-icon name="arrow-down" size="3rem" @click="ChangeDown()"></van-icon></div>
+				</div>
+		    <div class="user-detail" @click.stop>
+					<div class="user-head">
+						<van-icon size="2.4rem" name="user-circle-o"></van-icon>
+						<div style="margin-left: 1rem;">
+							<h3>{{curUser.name}}</h3>
+							<div class="d-flex">
+								<span>0 followers</span>
+								<span style="margin-left: 0.8rem;">0 stars</span>
+							</div>
+						</div>
+					</div>
+					<div class="d-flex tel">
+						<van-icon size="1.5rem" name="phone-o"></van-icon>
+						<a style="color: #000" :href="'tel:' + curUser.tel" style="margin-left: 0.5rem;">{{curUser.tel}}</a>
+					</div>
+					<div class="d-flex tel">
+						<van-icon size="1.2rem" name="envelop-o"></van-icon>
+						<span style="margin-left: 0.5rem;">{{curUser.email}}</span>
+					</div>
+				</div>
+		  </div>
+		</van-overlay>
+  </div>
+</body>
+
+</html>
+<script type="text/javascript" src="js/vue.min.js"></script>
+<script type="text/javascript" src="js/vant.min.js"></script>
+<script>
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      userData: [
+        {index: 'A', users:[
+          {name:'A1', tel:'13333333331', email: '1234567@qq.com'},
+          {name:'A2', tel:'13333333332', email: '2355556@qq.com'},
+          {name:'A3', tel:'13333333333', email: '3445665@qq.com'},
+        ]},
+        {index: 'B', users:[
+          {name:'B1', tel:'14444444441', email: '1234567@qq.com'},
+          {name:'B2', tel:'14444444442', email: '2355556@qq.com'},
+          {name:'B3', tel:'14444444443', email: '3445665@qq.com'},
+          {name:'B4', tel:'14444444444', email: '3445665@qq.com'},
+        ]},
+        {index: 'C', users:[
+          {name:'C1', tel:'15555555551', email: '1234567@qq.com'},
+          {name:'C2', tel:'15555555552', email: '2355556@qq.com'},
+          {name:'C3', tel:'15555555553', email: '3445665@qq.com'},
+          {name:'C4', tel:'15555555554', email: '3445665@qq.com'},
+          {name:'C5', tel:'15555555555', email: '3445665@qq.com'},
+        ]},
+				{index: 'E', users:[
+				  {name:'E1', tel:'16666666661', email: '1234567@qq.com'},
+				  {name:'E2', tel:'16666666662', email: '2355556@qq.com'},
+				  {name:'E3', tel:'16666666663', email: '3445665@qq.com'},
+				  {name:'E4', tel:'16666666664', email: '3445665@qq.com'},
+				  {name:'E5', tel:'16666666665', email: '3445665@qq.com'},
+				]},
+				{index: 'H', users:[
+				  {name:'H1', tel:'16666666661', email: '1234567@qq.com'},
+				  {name:'H2', tel:'16666666662', email: '2355556@qq.com'},
+				  {name:'H3', tel:'16666666663', email: '3445665@qq.com'},
+				  {name:'H4', tel:'16666666664', email: '3445665@qq.com'},
+				  {name:'H5', tel:'16666666665', email: '3445665@qq.com'},
+				]},
+				{index: 'M', users:[
+				  {name:'M1', tel:'17777777771', email: '1234567@qq.com'},
+				  {name:'M2', tel:'17777777772', email: '2355556@qq.com'},
+				  {name:'M3', tel:'17777777773', email: '3445665@qq.com'},
+				  {name:'M4', tel:'17777777774', email: '3445665@qq.com'},
+				  {name:'M5', tel:'17777777775', email: '3445665@qq.com'},
+				]},
+      ],
+			keywords: '', 
+			newListData: [], 
+			isFocus: true,
+			historyList: [{
+				list: [],
+				time: ''
+			}], //历史搜索记录
+			showModal: false,
+			detail: false,
+			curUser: [],
+			curIndex: '',
+			sIndex: '',
+			number: 0
+    },
+    created: function () {
+			
+    },
+    mounted: function () {
+			let storage=window.localStorage;
+			//console.log('缓存：',storage.getItem('searchWord'))
+			if(storage.getItem('searchWord')){
+				this.historyList = JSON.parse(localStorage.getItem("searchWord"))
+				let oldTimer = this.historyList[0].time
+				let timer = this.conversionTime(new Date())
+				// 如果当前日期大于 缓存中的日期，清除缓存
+				if (timer>oldTimer) {
+					this.historyList = []
+					storage.removeItem('searchWord')
+				}
+			}									
+			
+    },
+    methods: {
+      autoSearch(){ //模糊查询
+				let _search = this.keywords.toLowerCase()
+				let _data = []
+				if (_search) {
+					this.userData.forEach(function(item, index) {
+						item.users.filter(sitem => {
+							if (sitem.name.toLowerCase().indexOf(_search) !== -1) {
+							  _data.push(sitem.name)
+							  }
+						})
+					})
+				}
+				this.newListData = _data
+        //console.log('新数组：', this.newListData)
+				if(this.newListData.length > 0){
+          setTimeout(function(){
+            document.getElementById('searchList').style.display = 'block'
+            document.getElementById('book').style.display = 'none'
+          },0)
+				}
+				
+			},
+			userShow(){
+				document.getElementById('searchList').style.display = 'none'
+				document.getElementById('book').style.display = 'block'
+			},
+			initPage(){ //输入框获取焦点
+				this.showModal = true
+				let storage = window.localStorage
+				// 没有搜索记录，把搜索值push进数组首位，存入本地
+				let val = this.keywords
+				if(this.keywords!= ''){
+					if(storage.getItem('searchWord')){
+						this.historyList = JSON.parse(localStorage.getItem('searchWord'))
+						let sameIndex = this.historyList[0].list.findIndex((item, index) => {
+							return item === val
+						})
+						if (sameIndex >= 0) this.historyList[0].list.splice(sameIndex, 1)
+					}
+					this.historyList[0].list.unshift(val)
+					this.historyList[0].time = this.conversionTime(new Date())
+					storage.setItem('searchWord', JSON.stringify(this.historyList))
+					this.historyList = JSON.parse(storage.getItem('searchWord'))
+				}
+				//console.log(this.historyList)
+			},
+			historySearch(val){
+				this.keywords = val
+				this.showModal = false
+				this.autoSearch()
+			},
+			clear(){
+				let storage = window.localStorage
+				storage.removeItem('searchWord')
+				this.historyList = [
+					{
+						list: [],
+						time: ''
+					}
+				]
+        this.keywords = ''
+				document.getElementsByClassName('history-list').innerHTML = ''
+			},
+			// 获取时间转成整数
+			conversionTime (time) {
+			  // let dateClose = new Date();
+			  let dateClose = time;
+			  let seperator1Close = "-";
+			  let yearClose = dateClose.getFullYear();
+			  let monthClose = dateClose.getMonth() + 1;
+			  let strDateClose = dateClose.getDate();
+			  if (monthClose >= 1 && monthClose <= 9) {
+			      monthClose = "0" + monthClose;
+			  }
+			  if (strDateClose >= 0 && strDateClose <= 9) {
+			      strDateClose = "0" + strDateClose;
+			  }
+			  let currentdateClose = Number((yearClose + seperator1Close + monthClose + seperator1Close + strDateClose).replace(/-/g, ''));
+			  // console.log(currentdateClose,'currentdateClose');
+			  return currentdateClose;
+			},
+			showDetail(index, sindex){
+				this.detail = true
+				this.curUser = this.userData[index].users[sindex]
+				this.curIndex = index
+				this.sIndex = sindex				
+			},
+			ChangeUp(){
+				//console.log('c:', this.curIndex, 's:', this.sIndex)
+				if(this.curIndex == this.userData.length -1){
+					this.curIndex = 0
+					this.sIndex += 1
+				}else if(this.sIndex == this.userData[this.curIndex].users.length -1){
+					this.curIndex += 1
+					this.sIndex = 0
+				}else{
+					this.curIndex = this.curIndex++
+					this.sIndex += 1
+				}
+				this.curUser = this.userData[this.curIndex].users[this.sIndex]
+				
+				//console.log('c:', this.curIndex, 's:', this.sIndex)
+				//console.log('111:',this.curUser)
+			},
+			ChangeDown(){
+				if(this.curIndex ==0 && this.sIndex == 0){
+					this.curUser = this.userData[0].users[0]
+				}else if(this.sIndex == this.userData[this.curIndex].users.length -1){
+					this.curIndex = this.curIndex--
+					this.sIndex -= 1
+				}else if(this.sIndex == 0){
+					this.curIndex -= 1
+					this.sIndex = this.userData[this.curIndex].users.length -1
+				}else{
+					this.sIndex -= 1
+					this.curIndex = this.curIndex--
+				}
+				this.curUser = this.userData[this.curIndex].users[this.sIndex]
+				//console.log('cc:', this.curIndex, 'ss:', this.sIndex)
+			}
+    }
+  })
+ 
+</script>
+<style>
+	html,body,#app{
+		height: 100%;
+	}
+	.bar-head{
+		background-color: #DCDEE0;
+	}
+	.van-search__content{
+		padding-left: 0;
+	}
+	.user-number{
+		padding-left: 0.5em;
+	}
+	.search{
+		border-bottom: 1px solid #eee;
+	}
+	.seach-box{
+		position: relative;
+	}
+	.srarch_main{
+		position: absolute;
+		width: 84%;
+		background: #fff;
+		left: 5%;
+		padding: 0.7rem 3%;
+		z-index: 9999;
+		box-shadow:0px 4px 8px #ddd;
+	}
+	.history-list{
+		margin-top: 0.5rem;
+		height: 13rem;
+		overflow-y: auto;
+	}
+	.history-list li{
+		line-height: 1.7rem;
+	}
+ .wrapper {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+	}
+	.user-detail{
+		width: 80%;
+		height: 11.25rem;
+		background-color: #fff;
+		margin: 0 auto;
+		padding: 0.8rem;
+	}
+	.user-head{
+		display: flex;
+		align-items: center;
+	}
+	h3{
+		margin: 0 0 0.3rem;
+	}
+	.d-flex{
+		display: flex;
+		align-items: center;
+	}
+	.tel{
+		padding-left: 0.5rem;
+		padding-top: 0.9rem;
+	}
+	.indicate{
+		height: 20rem;
+		position: absolute;
+	}
+	.down-icon{
+		position: absolute;
+		bottom: 0;
+	}
+  .searchList{
+    display: none;
+  }
+</style>
